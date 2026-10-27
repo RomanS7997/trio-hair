@@ -200,6 +200,43 @@
     });
   }
 
+  /* ---------- вкладки меню услуг (шаблон v3) ---------- */
+  var tabs = $all('[role="tab"]');
+  if (tabs.length) {
+    var panels = tabs.map(function (tb) { return document.getElementById(tb.getAttribute("aria-controls")); });
+    var selectTab = function (i, focus) {
+      tabs.forEach(function (tb, k) {
+        var on = k === i;
+        tb.setAttribute("aria-selected", on ? "true" : "false");
+        tb.tabIndex = on ? 0 : -1;
+        panels[k].classList.toggle("is-active", on);
+      });
+      if (focus) tabs[i].focus();
+      tabs[i].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+    };
+    tabs.forEach(function (tb, i) {
+      tb.addEventListener("click", function () { selectTab(i); });
+      tb.addEventListener("keydown", function (e) {
+        if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+        e.preventDefault();
+        selectTab((i + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length, true);
+      });
+    });
+  }
+
+  /* ---------- KakaoTalk: копируем ID ---------- */
+  $all("[data-kakao-id]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var id = btn.dataset.kakaoId, msg = fmt(T.kakao_copied, { id: id });
+      var done = function () {
+        var old = $(".kakao-toast"); if (old) old.remove();
+        var t = document.createElement("div"); t.className = "kakao-toast"; t.setAttribute("role", "status"); t.textContent = msg;
+        document.body.appendChild(t); setTimeout(function () { t.remove(); }, 5000);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(id).then(done, done); else done();
+    });
+  });
+
   /* ---------- просмотр фото ---------- */
   var lb = $("#lightbox");
   if (lb && lb.showModal) {
